@@ -5,6 +5,11 @@ import { io } from 'socket.io-client';
 import CheckoutForm from '../components/CheckoutForm';
 import IframeForm from '../components/IframeForm';
 
+// Configure axios base URL
+axios.defaults.baseURL = import.meta.env.PROD 
+  ? 'https://axipays.onrender.com'
+  : 'http://localhost:5000';
+
 const socket = io(
   import.meta.env.PROD
     ? 'https://axipays.onrender.com'
@@ -32,7 +37,7 @@ function Checkout() {
   const handleS2SSubmit = async (formData) => {
     setLoading(true);
     try {
-      const response = await axios.post('https://axipays.onrender.com/api/payments/s2s', formData);
+      const response = await axios.post('/api/payments/s2s', formData);
       
       if (response.data.redirectUrl) {
         window.location.href = response.data.redirectUrl;
@@ -40,7 +45,11 @@ function Checkout() {
         toast.success('Payment processed successfully');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Payment processing failed');
+      console.error('Payment error:', error);
+      toast.error(
+        error.response?.data?.message || 
+        'Payment processing failed. Please try again.'
+      );
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,11 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import TransactionCard from '../components/TransactionCard';
 
-const socket = io('http://localhost:5000');
+const socket = io(
+  import.meta.env.PROD
+    ? 'https://axipays.onrender.com'
+    : 'http://localhost:5000'
+);
 
 function Orders() {
   const [transactions, setTransactions] = useState([]);
