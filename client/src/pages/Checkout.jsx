@@ -5,7 +5,11 @@ import { io } from 'socket.io-client';
 import CheckoutForm from '../components/CheckoutForm';
 import IframeForm from '../components/IframeForm';
 
-const socket = io('http://localhost:5000');
+const socket = io(
+  import.meta.env.PROD
+    ? 'https://axipays.onrender.com'
+    : 'http://localhost:5000'
+);
 
 function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('s2s');
