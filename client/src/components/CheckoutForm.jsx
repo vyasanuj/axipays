@@ -259,7 +259,6 @@ function CheckoutForm({ onSubmit, loading }) {
               className={inputClasses('currency')}
             >
               <option value="USD">USD</option>
-              <option value="INR">INR</option>
               <option value="EUR">EUR</option>
               <option value="GBP">GBP</option>
             </select>
