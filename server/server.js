@@ -46,6 +46,12 @@ app.set('io', io);
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 
+
+app.get('/', (req, res) => {
+  res.send('Axipays Backend is Live ✅');
+});
+
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
