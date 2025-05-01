@@ -1,13 +1,105 @@
+// const express = require('express');
+// const mongoose = require('mongoose');
+// const cors = require('cors');
+// const bodyParser = require('body-parser');
+// const { createServer } = require('http');
+// const { Server } = require('socket.io');
+// const dotenv = require('dotenv');
+
+// // Load environment variables
+// dotenv.config();
+
+// const allowedOrigins = [
+//   'http://localhost:5173',
+//   'https://axipays.vercel.app',
+//   'https://axipays-zgg3-jkkgpiecb-anuj-s-projects-6ea949e7.vercel.app',
+//   ...process.env.ALLOW_ORIGINS?.split(',') || []
+// ];
+
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true
+// };
+
+// const app = express();
+// const httpServer = createServer(app);
+// const io = new Server(httpServer, {
+//   cors: {
+//     origin: function (origin, callback) {
+//       if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error('Not allowed by CORS'));
+//       }
+//     },
+//     methods: ['GET', 'POST'],
+//     credentials: true
+//   }
+// });
+
+// // Middleware
+// app.use(cors(corsOptions));
+// app.use(bodyParser.json());
+
+// // Database connection
+// mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/yourdbname', {
+//   useNewUrlParser: true,})
+//   .then(() => console.log('Connected to MongoDB'))
+//   .catch(err => console.error('MongoDB connection error:', err));
+
+// // Socket.IO connection handling
+// io.on('connection', (socket) => {
+//   console.log('Client connected');
+  
+//   socket.on('disconnect', () => {
+//     console.log('Client disconnected');
+//   });
+// });
+
+// // Make io accessible to route handlers
+// app.set('io', io);
+
+// // Routes
+// app.use('/api/transactions', require('./routes/transactionRoutes'));
+// app.use('/api/payments', require('./routes/paymentRoutes'));
+
+// app.get('/', (req, res) => {
+//   res.send('Axipays Backend is Live ✅');
+// });
+
+// // Error handling middleware
+// app.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).json({ message: 'Something went wrong!' });
+// });
+
+// const PORT = process.env.PORT || 5000;
+// httpServer.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// }); 
+
+
+
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-const dotenv = require('dotenv');
 
-// Load environment variables
+// Load env variables
 dotenv.config();
+
+const app = express();
+const httpServer = createServer(app);
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -16,70 +108,64 @@ const allowedOrigins = [
   ...process.env.ALLOW_ORIGINS?.split(',') || []
 ];
 
+// CORS setup
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('CORS not allowed'));
     }
   },
   credentials: true
 };
+app.use(cors(corsOptions));
+app.use(bodyParser.json());
 
-const app = express();
-const httpServer = createServer(app);
+// MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/yourdbname', {
+  useNewUrlParser: true,
+})
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch(err => console.error('❌ MongoDB Error:', err));
+
+// Socket.IO setup
 const io = new Server(httpServer, {
   cors: {
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true
   }
 });
 
-// Middleware
-app.use(cors(corsOptions));
-app.use(bodyParser.json());
-
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/yourdbname', {
-  useNewUrlParser: true,})
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log('Client connected');
-  
+  console.log('📡 Client connected:', socket.id);
+
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    console.log('📴 Client disconnected:', socket.id);
   });
 });
 
-// Make io accessible to route handlers
+// Make `io` accessible in routes
 app.set('io', io);
 
 // Routes
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 
+// Health check
 app.get('/', (req, res) => {
-  res.send('Axipays Backend is Live ✅');
+  res.send('Axipays Backend Live ✅');
 });
 
-// Error handling middleware
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  console.error('Error:', err.stack);
+  res.status(500).json({ message: 'Internal server error' });
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-}); 
+  console.log(`🚀 Server running on port ${PORT}`);
+});
