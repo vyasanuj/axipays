@@ -9,19 +9,45 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://axipays.vercel.app',
+  ...process.env.ALLOW_ORIGINS?.split(',') || []
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+};
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? 'https://axipays.vercel.app' 
-      : 'http://localhost:5173',
-    methods: ['GET', 'POST']
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
+
+
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // Database connection
