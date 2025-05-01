@@ -32,7 +32,7 @@ function Checkout() {
   const handleS2SSubmit = async (formData) => {
     setLoading(true);
     try {
-      const response = await axios.post('/api/payments/s2s', formData);
+      const response = await axios.post('https://axipays.onrender.com/api/payments/s2s', formData);
       
       if (response.data.redirectUrl) {
         window.location.href = response.data.redirectUrl;
