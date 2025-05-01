@@ -9,10 +9,10 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
-
 const allowedOrigins = [
   'http://localhost:5173',
   'https://axipays.vercel.app',
+  'https://axipays-zgg3-jkkgpiecb-anuj-s-projects-6ea949e7.vercel.app',
   ...process.env.ALLOW_ORIGINS?.split(',') || []
 ];
 
@@ -43,9 +43,6 @@ const io = new Server(httpServer, {
   }
 });
 
-
-
-
 // Middleware
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
@@ -72,11 +69,9 @@ app.set('io', io);
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 
-
 app.get('/', (req, res) => {
   res.send('Axipays Backend is Live ✅');
 });
-
 
 // Error handling middleware
 app.use((err, req, res, next) => {

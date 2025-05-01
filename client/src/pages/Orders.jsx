@@ -2,18 +2,23 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import TransactionCard from '../components/TransactionCard';
+import toast from 'react-hot-toast';
 
 // Configure axios defaults
 const API_BASE_URL = import.meta.env.PROD 
   ? 'https://axipays.onrender.com'
   : '';
 
-// Configure socket connection
-const socket = io(
-  import.meta.env.PROD
-    ? 'https://axipays.onrender.com'
-    : 'http://localhost:5000'
-);
+// Configure socket connection with error handling
+const SOCKET_URL = import.meta.env.PROD
+  ? 'https://axipays.onrender.com'
+  : 'http://localhost:5000';
+
+const socket = io(SOCKET_URL, {
+  transports: ['websocket', 'polling'],
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+});
 
 function Orders() {
   const [transactions, setTransactions] = useState([]);
@@ -21,6 +26,12 @@ function Orders() {
 
   useEffect(() => {
     fetchTransactions();
+
+    // Socket connection error handling
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      toast.error('Real-time updates unavailable');
+    });
 
     // Listen for real-time updates
     socket.on('transaction-update', ({ orderId, status }) => {
@@ -34,6 +45,7 @@ function Orders() {
     });
 
     return () => {
+      socket.off('connect_error');
       socket.off('transaction-update');
     };
   }, []);
@@ -44,6 +56,7 @@ function Orders() {
       setTransactions(response.data);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      toast.error('Failed to load transactions');
     } finally {
       setLoading(false);
     }
