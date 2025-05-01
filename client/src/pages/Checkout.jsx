@@ -12,6 +12,7 @@ axios.defaults.baseURL = API_BASE_URL;
 // Configure socket connection with error handling
 const socket = io('https://axipays.onrender.com', {
   transports: ['websocket', 'polling'],
+  timeout: 10000,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
   withCredentials: true
