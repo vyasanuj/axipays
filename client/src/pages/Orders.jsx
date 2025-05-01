@@ -3,6 +3,12 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import TransactionCard from '../components/TransactionCard';
 
+// Configure axios defaults
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://axipays.onrender.com'
+  : '';
+
+// Configure socket connection
 const socket = io(
   import.meta.env.PROD
     ? 'https://axipays.onrender.com'
@@ -34,7 +40,7 @@ function Orders() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get('/api/transactions');
+      const response = await axios.get(`${API_BASE_URL}/api/transactions`);
       setTransactions(response.data);
     } catch (error) {
       console.error('Error fetching transactions:', error);

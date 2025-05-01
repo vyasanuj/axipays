@@ -5,11 +5,14 @@ import { io } from 'socket.io-client';
 import CheckoutForm from '../components/CheckoutForm';
 import IframeForm from '../components/IframeForm';
 
-// Configure axios base URL
-axios.defaults.baseURL = import.meta.env.PROD 
+// Configure axios defaults
+const API_BASE_URL = import.meta.env.PROD 
   ? 'https://axipays.onrender.com'
-  : 'http://localhost:5000';
+  : '';
 
+axios.defaults.baseURL = API_BASE_URL;
+
+// Configure socket connection
 const socket = io(
   import.meta.env.PROD
     ? 'https://axipays.onrender.com'
@@ -37,7 +40,7 @@ function Checkout() {
   const handleS2SSubmit = async (formData) => {
     setLoading(true);
     try {
-      const response = await axios.post('/api/payments/s2s', formData);
+      const response = await axios.post(`${API_BASE_URL}/api/payments/s2s`, formData);
       
       if (response.data.redirectUrl) {
         window.location.href = response.data.redirectUrl;
