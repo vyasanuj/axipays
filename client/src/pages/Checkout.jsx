@@ -6,21 +6,15 @@ import CheckoutForm from '../components/CheckoutForm';
 import IframeForm from '../components/IframeForm';
 
 // Configure axios defaults
-const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://axipays.onrender.com'
-  : '';
-
+const API_BASE_URL = 'https://axipays.onrender.com';
 axios.defaults.baseURL = API_BASE_URL;
 
 // Configure socket connection with error handling
-const SOCKET_URL = import.meta.env.PROD
-  ? 'https://axipays.onrender.com'
-  : 'http://localhost:5000';
-
-const socket = io(SOCKET_URL, {
+const socket = io('https://axipays.onrender.com', {
   transports: ['websocket', 'polling'],
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
+  withCredentials: true
 });
 
 function Checkout() {
@@ -34,6 +28,10 @@ function Checkout() {
       toast.error('Real-time updates unavailable');
     });
 
+    socket.on('connect', () => {
+      console.log('Socket connected successfully');
+    });
+
     // Listen for transaction updates
     socket.on('transaction-update', (data) => {
       const { status } = data;
@@ -44,6 +42,7 @@ function Checkout() {
 
     return () => {
       socket.off('connect_error');
+      socket.off('connect');
       socket.off('transaction-update');
     };
   }, []);
@@ -51,7 +50,12 @@ function Checkout() {
   const handleS2SSubmit = async (formData) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/payments/s2s`, formData);
+      const response = await axios.post('/api/payments/s2s', formData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (response.data.redirectUrl) {
         window.location.href = response.data.redirectUrl;
